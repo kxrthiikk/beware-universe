@@ -8,7 +8,6 @@ import Portfolio from "./components/Portfolio";
 import Studio from "./components/Studio";
 import CTA from "./components/CTA";
 import Footer from "./components/Footer";
-import Cursor from "./components/Cursor";
 
 export default function App() {
   const [introReady, setIntroReady] = useState(false);
@@ -20,7 +19,6 @@ export default function App() {
   return (
     <Layout>
       <IntroLoader onComplete={handleIntroComplete} />
-      <Cursor />
       <Navbar introReady={introReady} />
       <main>
         <Hero introReady={introReady} />

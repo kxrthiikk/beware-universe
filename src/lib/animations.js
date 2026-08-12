@@ -4,17 +4,48 @@ import SplitType from "split-type";
 
 gsap.registerPlugin(ScrollTrigger);
 
+/** Soft cinematic easing — no bounce / elastic */
+export const EASE = "power3.out";
+/** Scroll / chrome */
+export const EASE_UI = "power3.out";
+/** Intro / hero load */
+export const EASE_CINEMA = "power4.out";
+/** Masks / cross-stage moves */
+export const EASE_CINEMA_IO = "power4.inOut";
+
+export const DUR = {
+  press: 0.15,
+  ui: 0.22,
+  panel: 0.36,
+  reveal: 0.85,
+  image: 1.0,
+};
+
 export function prefersReducedMotion() {
   if (typeof window === "undefined") return false;
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-/** Soft cinematic easing — no bounce / elastic */
-export const EASE = "power3.out";
+/** Blur is paint-costly — skip under reduced motion or coarse pointers on small screens */
+export function allowBlurEffects() {
+  if (typeof window === "undefined") return false;
+  if (prefersReducedMotion()) return false;
+  return true;
+}
+
+function wrapSplitLines(split, maskClass = "split-line-mask") {
+  split.lines.forEach((line) => {
+    const wrap = document.createElement("span");
+    wrap.className = maskClass;
+    line.parentNode.insertBefore(wrap, line);
+    wrap.appendChild(line);
+  });
+}
 
 /**
  * Split a heading into lines and reveal them upward.
- * Preserves nested markup (accent spans, italics, etc.).
+ * Optional blur-in for cinematic headings (hero / intro / section H2s).
+ * Preserves nested markup. Always snaps visible under reduced motion.
  * Returns a cleanup function.
  */
 export function splitLinesReveal(element, options = {}) {
@@ -24,36 +55,61 @@ export function splitLinesReveal(element, options = {}) {
     trigger,
     start = "top 80%",
     delay = 0,
-    stagger = 0.1,
-    duration = 1.05,
+    stagger = 0.06,
+    duration = DUR.reveal,
+    ease = EASE_UI,
+    immediate = false,
+    blur = false,
+    blurFrom = 6,
+    yPercent = 100,
+    maskClass = "split-line-mask",
+    lineClass = "split-line",
   } = options;
 
   if (prefersReducedMotion()) {
+    gsap.set(element, { opacity: 1, clearProps: "filter,transform" });
     return () => {};
   }
 
+  const useBlur = blur && allowBlurEffects();
+
   const split = new SplitType(element, {
     types: "lines",
-    lineClass: "split-line",
+    lineClass,
     tagName: "span",
   });
 
-  split.lines.forEach((line) => {
-    const wrap = document.createElement("span");
-    wrap.className = "split-line-mask";
-    line.parentNode.insertBefore(wrap, line);
-    wrap.appendChild(line);
-  });
+  wrapSplitLines(split, maskClass);
+
+  const fromVars = {
+    yPercent,
+    opacity: 0,
+  };
+  if (useBlur) {
+    fromVars.filter = `blur(${blurFrom}px)`;
+  }
+
+  gsap.set(split.lines, fromVars);
 
   const tweenVars = {
-    yPercent: 110,
+    yPercent: 0,
+    opacity: 1,
     duration,
     delay,
     stagger,
-    ease: EASE,
+    ease,
+    onComplete: () => {
+      if (useBlur) {
+        gsap.set(split.lines, { clearProps: "filter" });
+      }
+    },
   };
 
-  if (trigger || element) {
+  if (useBlur) {
+    tweenVars.filter = "blur(0px)";
+  }
+
+  if (!immediate) {
     tweenVars.scrollTrigger = {
       trigger: trigger || element,
       start,
@@ -61,12 +117,7 @@ export function splitLinesReveal(element, options = {}) {
     };
   }
 
-  // If no external trigger was intended for load animations
-  if (options.immediate) {
-    delete tweenVars.scrollTrigger;
-  }
-
-  const tween = gsap.from(split.lines, tweenVars);
+  const tween = gsap.to(split.lines, tweenVars);
 
   return () => {
     tween?.scrollTrigger?.kill();
@@ -86,7 +137,8 @@ export function clipReveal(targets, options = {}) {
     start = "top 80%",
     delay = 0,
     stagger = 0,
-    duration = 1.25,
+    duration = DUR.image,
+    ease = EASE_UI,
     from = "inset(100% 0% 0% 0%)",
     to = "inset(0% 0% 0% 0%)",
   } = options;
@@ -104,7 +156,7 @@ export function clipReveal(targets, options = {}) {
       duration,
       delay,
       stagger,
-      ease: EASE,
+      ease,
       scrollTrigger: trigger
         ? {
             trigger,
@@ -116,19 +168,59 @@ export function clipReveal(targets, options = {}) {
   );
 }
 
-/** Slow scrubbed parallax on an image inside an overflow-hidden parent */
+/**
+ * Slow scrubbed parallax on an image inside an overflow-hidden parent.
+ * Halves intensity on narrow viewports; skips under reduced motion.
+ */
 export function parallaxImage(image, trigger, yPercent = 10) {
   if (!image || !trigger) return null;
   if (prefersReducedMotion()) return null;
 
+  const narrow =
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 768px)").matches;
+  const amount = narrow ? yPercent * 0.5 : yPercent;
+
   return gsap.to(image, {
-    yPercent,
+    yPercent: amount,
     ease: "none",
     scrollTrigger: {
       trigger,
       start: "top bottom",
       end: "bottom top",
       scrub: true,
+    },
+  });
+}
+
+/** Single scroll reveal — opacity + subtle y, no blur or clip */
+export function revealOnce(targets, options = {}) {
+  if (!targets) return null;
+
+  const {
+    trigger,
+    start = "top 85%",
+    delay = 0,
+    duration = 0.5,
+    y = 12,
+    ease = EASE_UI,
+  } = options;
+
+  if (prefersReducedMotion()) {
+    gsap.set(targets, { opacity: 1, y: 0, clearProps: "transform" });
+    return null;
+  }
+
+  return gsap.from(targets, {
+    y,
+    opacity: 0,
+    duration,
+    delay,
+    ease,
+    scrollTrigger: {
+      trigger: trigger || targets,
+      start,
+      once: true,
     },
   });
 }
@@ -141,13 +233,14 @@ export function fadeUp(targets, options = {}) {
     trigger,
     start = "top 85%",
     delay = 0,
-    stagger = 0.08,
-    duration = 0.9,
-    y = 28,
+    stagger = 0.05,
+    duration = 0.65,
+    y = 16,
+    ease = EASE_UI,
   } = options;
 
   if (prefersReducedMotion()) {
-    gsap.set(targets, { clearProps: "all" });
+    gsap.set(targets, { opacity: 1, y: 0, clearProps: "transform" });
     return null;
   }
 
@@ -157,7 +250,7 @@ export function fadeUp(targets, options = {}) {
     duration,
     delay,
     stagger,
-    ease: EASE,
+    ease,
     scrollTrigger: {
       trigger: trigger || targets,
       start,
@@ -178,8 +271,8 @@ export function animateDivider(lineEl, trigger) {
 
   return gsap.to(lineEl, {
     scaleX: 1,
-    duration: 1.2,
-    ease: EASE,
+    duration: 0.7,
+    ease: EASE_UI,
     scrollTrigger: {
       trigger: trigger || lineEl,
       start: "top 90%",

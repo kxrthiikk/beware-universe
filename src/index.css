@@ -9,6 +9,9 @@
   --muted: #9e9e9e;
   --accent: #d8b48a;
   --border: rgba(255, 255, 255, 0.12);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-soft: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 * {
@@ -19,15 +22,6 @@ html,
 body,
 #root {
   min-height: 100%;
-}
-
-html.lenis,
-html.lenis body {
-  height: auto;
-}
-
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
 }
 
 body {
@@ -45,7 +39,8 @@ body {
   color: #050505;
 }
 
-img {
+img,
+video {
   max-width: 100%;
   display: block;
 }
@@ -66,7 +61,15 @@ a {
   font-family: "Inter", sans-serif;
   font-size: 12px;
   font-weight: 500;
-  letter-spacing: 3px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.label-eyebrow {
+  font-family: "Inter", sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -74,7 +77,7 @@ a {
   font-family: "Inter", sans-serif;
   font-size: 10px;
   font-weight: 500;
-  letter-spacing: 0.28em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -83,6 +86,14 @@ a {
   font-weight: 300;
   letter-spacing: -0.02em;
   line-height: 0.95;
+}
+
+.heading-section {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-weight: 300;
+  font-size: clamp(36px, 4vw, 56px);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
 }
 
 .border-line {
@@ -104,7 +115,7 @@ a {
   background: currentColor;
   transform: scaleX(1);
   transform-origin: right center;
-  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.32s var(--ease-soft);
 }
 
 .underline-link:hover::after {
@@ -122,20 +133,21 @@ a {
   background: currentColor;
   transform: scaleX(0);
   transform-origin: left center;
-  transition: transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.32s var(--ease-soft);
 }
 
 .underline-link:hover::before {
   transform: scaleX(1);
 }
 
-.arrow-slide {
-  display: inline-block;
-  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+/* Press feedback */
+.pressable {
+  transition: transform 150ms var(--ease-out);
+  transform-origin: center center;
 }
 
-.group:hover .arrow-slide {
-  transform: translateX(6px);
+.pressable:active {
+  transform: scale(0.97);
 }
 
 /* SplitType line masks */
@@ -147,11 +159,6 @@ a {
 
 .split-line {
   display: block;
-  will-change: transform;
-}
-
-.divider-line {
-  transform-origin: left center;
 }
 
 .nav-link {
@@ -172,7 +179,7 @@ a {
   height: 1px;
   background: currentColor;
   transform-origin: left center;
-  animation: nav-underline 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: nav-underline 0.45s var(--ease-soft) forwards;
 }
 
 @keyframes nav-underline {
@@ -181,23 +188,6 @@ a {
   }
   to {
     transform: scaleX(1);
-  }
-}
-
-.scroll-cue-arrow {
-  display: inline-block;
-  animation: scroll-cue 2.2s ease-in-out infinite;
-}
-
-@keyframes scroll-cue {
-  0%,
-  100% {
-    transform: translateY(0);
-    opacity: 0.7;
-  }
-  50% {
-    transform: translateY(5px);
-    opacity: 1;
   }
 }
 
@@ -211,7 +201,6 @@ a {
   justify-content: center;
   background: #050505;
   pointer-events: all;
-  will-change: opacity, background-color;
 }
 
 .intro-stage {
@@ -221,7 +210,6 @@ a {
   align-items: center;
   justify-content: center;
   width: min(86vw, 520px);
-  will-change: transform, opacity;
   transform-origin: center center;
 }
 
@@ -236,7 +224,6 @@ a {
   line-height: 1;
   letter-spacing: 0.18em;
   color: #d4a574;
-  will-change: clip-path, opacity;
 }
 
 .intro-wordmask {
@@ -244,7 +231,6 @@ a {
   width: 100%;
   display: flex;
   justify-content: center;
-  will-change: clip-path;
   min-height: clamp(42px, 8.5vw, 88px);
 }
 
@@ -266,125 +252,33 @@ a {
   text-align: center;
 }
 
-.intro-shine {
-  position: absolute;
-  inset: -20% -40%;
-  pointer-events: none;
-  background: linear-gradient(
-    105deg,
-    transparent 0%,
-    transparent 42%,
-    rgba(212, 165, 116, 0.08) 46%,
-    rgba(212, 165, 116, 0.35) 50%,
-    rgba(212, 165, 116, 0.08) 54%,
-    transparent 58%,
-    transparent 100%
-  );
-  mix-blend-mode: soft-light;
-  will-change: transform, opacity;
-}
-
-.intro-tagline {
-  margin-top: 1.75rem;
-  text-align: center;
-  will-change: opacity;
-}
-
-.intro-tagline-line {
-  margin: 0;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-weight: 300;
-  font-size: clamp(18px, 2.4vw, 28px);
-  line-height: 1.35;
-  letter-spacing: 0.02em;
-  color: #e8d8c6;
-}
-
-.intro-tagline-accent {
-  font-style: italic;
-  color: #d4a574;
-}
-
-.intro-split-mask {
-  display: block;
-  overflow: hidden;
-}
-
-.intro-split-line {
-  display: block;
-  will-change: transform, opacity;
-}
-
 html.intro-active {
   overflow: hidden;
 }
 
-html.intro-active .custom-cursor,
 html.intro-active .whatsapp-fab {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
 }
 
-.grain {
-  pointer-events: none;
-  position: fixed;
-  inset: 0;
-  z-index: 9998;
-  opacity: 0.04;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-.custom-cursor {
-  pointer-events: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 9999;
-  width: 10px;
-  height: 10px;
-  border-radius: 9999px;
-  background: rgba(216, 180, 138, 0.85);
-  mix-blend-mode: difference;
-  transform: translate(-50%, -50%);
-  transition: width 0.25s ease, height 0.25s ease, background 0.25s ease;
-}
-
-.custom-cursor.hovering {
-  width: 36px;
-  height: 36px;
-  background: rgba(216, 180, 138, 0.35);
-}
-
-@media (max-width: 1024px) {
-  .custom-cursor {
-    display: none;
-  }
+.hero-film {
+  will-change: opacity;
 }
 
 @media (prefers-reduced-motion: reduce) {
   html.reduce-motion *,
   html.reduce-motion *::before,
-  html.reduce-motion *::after,
-  *,
-  *::before,
-  *::after {
+  html.reduce-motion *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
 
-  .scroll-cue-arrow {
-    animation: none;
-  }
-
-  .split-line {
+  html.reduce-motion .split-line {
     transform: none !important;
-  }
-
-  .divider-line {
-    transform: scaleX(1) !important;
+    filter: none !important;
+    opacity: 1 !important;
   }
 }

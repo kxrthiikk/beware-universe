@@ -1,44 +1,29 @@
-import { useEffect, useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useRef } from "react";
 import { navLinks } from "./Navbar";
-import { fadeUp, prefersReducedMotion } from "../lib/animations";
 
-gsap.registerPlugin(ScrollTrigger);
+const socials = [
+  { label: "Instagram", href: "https://instagram.com" },
+  { label: "YouTube", href: "https://youtube.com" },
+  { label: "Vimeo", href: "https://vimeo.com" },
+];
 
 const footerLinks = navLinks.filter((l) =>
-  ["Home", "About", "Portfolio", "Studio", "Journal", "Contact"].includes(
-    l.label
-  )
+  ["Home", "Services", "Portfolio", "Studio", "Contact"].includes(l.label)
 );
 
 export default function Footer() {
   const footerRef = useRef(null);
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      if (prefersReducedMotion()) return;
-      fadeUp(footerRef.current?.children, {
-        trigger: footerRef.current,
-        start: "top 92%",
-        y: 24,
-        duration: 0.85,
-      });
-    }, footerRef);
-
-    return () => ctx.revert();
-  }, []);
-
   return (
     <footer ref={footerRef} className="relative w-full pb-8 pt-14 sm:pt-16">
       <div className="container-site">
-        <div className="flex flex-col items-center gap-10 border-b border-white/[0.12] pb-10 sm:flex-row sm:justify-between sm:gap-6">
-          <a href="#home" className="leading-none" data-cursor="hover">
-            <div className="font-sans text-[15px] font-semibold tracking-[0.16em] text-text">
+        <div className="flex flex-col items-center gap-10 border-b border-white/[0.12] pb-10 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+          <a href="#home" className="pressable leading-none">
+            <div className="font-sans text-[15px] font-semibold tracking-[0.12em] text-text">
               BE&middot;WARE!
             </div>
-            <div className="mt-[3px] text-[8px] font-medium tracking-[0.32em] text-muted">
-              CREATIVE STUDIO
+            <div className="mt-[3px] text-[11px] font-medium tracking-[0.12em] text-muted">
+              Creative Studio
             </div>
           </a>
 
@@ -50,29 +35,41 @@ export default function Footer() {
               <a
                 key={item.label}
                 href={item.href}
-                className="label-nav text-muted transition-colors duration-300 hover:text-accent"
-                data-cursor="hover"
+                className="label-nav text-muted transition-colors duration-300 hover:text-text"
               >
                 {item.label}
               </a>
             ))}
           </nav>
 
-          <div className="flex items-center gap-6">
-            <a
-              href="#"
-              className="label-tiny text-muted transition-colors hover:text-accent"
-              data-cursor="hover"
-            >
-              Privacy Policy
-            </a>
-            <a
-              href="#"
-              className="label-tiny text-muted transition-colors hover:text-accent"
-              data-cursor="hover"
-            >
-              Terms &amp; Conditions
-            </a>
+          <div className="flex flex-col items-center gap-4 sm:items-end">
+            <nav className="flex items-center gap-5" aria-label="Social">
+              {socials.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="label-eyebrow text-muted transition-colors hover:text-text"
+                >
+                  {item.label}
+                </a>
+              ))}
+            </nav>
+            <div className="flex items-center gap-6">
+              <a
+                href="#"
+                className="text-[11px] text-muted transition-colors hover:text-text"
+              >
+                Privacy
+              </a>
+              <a
+                href="#"
+                className="text-[11px] text-muted transition-colors hover:text-text"
+              >
+                Terms
+              </a>
+            </div>
           </div>
         </div>
 
